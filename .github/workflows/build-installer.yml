@@ -1,0 +1,52 @@
+# Один клик — готовый установщик ReelsMakerPro-Setup.exe (без установки Python/Inno у себя)
+name: Build installer
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Inno Setup
+        run: choco install innosetup -y
+        shell: pwsh
+
+      - name: Add Inno Setup to PATH
+        run: |
+          $innoPath = "C:\Program Files (x86)\Inno Setup 6"
+          if (-not (Test-Path $innoPath)) { $innoPath = "C:\Program Files\Inno Setup 6" }
+          echo "INNO_PATH=$innoPath" >> $env:GITHUB_ENV
+          echo "$innoPath" >> $env:GITHUB_PATH
+        shell: pwsh
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build EXE and installer
+        run: python build_exe.py --installer
+
+      - name: Upload ReelsMakerPro-Setup.exe
+        uses: actions/upload-artifact@v4
+        with:
+          name: ReelsMakerPro-Setup
+          path: dist/ReelsMakerPro-Setup.exe
+
+      - name: Upload ReelsMakerPro.exe (portable)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ReelsMakerPro-portable
+          path: dist/ReelsMakerPro.exe

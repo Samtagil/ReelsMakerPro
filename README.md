@@ -3,9 +3,27 @@
 
 ![Превью приложения](resources/banner.png)
 
+**Оригинал:** [nellimonix/ReelsMakerPro](https://github.com/nellimonix/ReelsMakerPro) — данный репозиторий является модификацией (сборка в один EXE, установщик без Inno, обход проблем с torch/PyInstaller).
+
 ## Описание
 
 ReelsMaker Pro — это мощное приложение для обработки видео с возможностью загрузки на YouTube и использованием искусственного интеллекта для автоматической генерации метаданных.
+
+### Один скрипт — всё соберёт сам (ничего не ставите)
+
+Запустите **`Собрать_установщик.bat`** в корне проекта.
+
+- Ничего не нужно ставить заранее: ни Python, ни Inno Setup, ни PyInstaller.
+- При первом запуске скрипт сам скачает встроенный Python (один раз), поставит зависимости и PyInstaller, скачает ffmpeg/yt-dlp, соберёт приложение и **установщик**.
+- В папке **`dist`** появятся:
+  - **ReelsMakerPro-Setup.exe** — установщик для пользователей (один файл, запуск — и программа ставится);
+  - **ReelsMakerPro.exe** — портативный вариант.
+
+Нужны только интернет и Windows. Установщик делается без Inno Setup (копия в папку пользователя и ярлыки).
+
+---
+
+*Альтернатива через GitHub:* вкладка **Actions** → workflow **"Build installer"** → Run workflow → скачать артефакт **ReelsMakerPro-Setup** (сборка на серверах GitHub).
 
 ## Функциональность
 
@@ -149,12 +167,82 @@ pyinstaller --onefile --windowed --icon=resources/icon.ico --add-data "bin;bin" 
 
 После компиляции EXE файл будет находиться в папке `dist/`.
 
+### Установщик для пользователей Windows (один клик, без Python)
+
+**Конечному пользователю** нужен только один файл — **`ReelsMakerPro-Setup.exe`**. Он запускает его, выбирает папку установки (или оставляет по умолчанию), нажимает «Установить» — приложение ставится в «Программы», появляются ярлыки. Ни Python, ни FFmpeg, ни yt-dlp устанавливать не нужно.
+
+Распространяйте файл из папки `dist/ReelsMakerPro-Setup.exe` после сборки (см. ниже).
+
+### Автоматическая сборка EXE и установщика под Windows
+
+В репозитории есть скрипты, которые собирают и портативный EXE, и **установщик** с встроенными `ffmpeg`, `ffprobe` и `yt-dlp`.
+
+#### Что нужно для сборки (один раз)
+
+- **Python 3** (для запуска скриптов сборки).
+- **Inno Setup 5 или 6** — для создания установщика. Скачать: [jrsoftware.org](https://jrsoftware.org/isinfo.php). Установите в стандартную папку или добавьте `ISCC.exe` в PATH.
+
+#### Быстрая автосборка (один клик)
+
+1. Клонируйте репозиторий:
+   ```bash
+   git clone https://github.com/nellimonix/ReelsMakerPro.git
+   cd ReelsMakerPro
+   ```
+2. Запустите **один раз** (двойной клик или из командной строки):
+   ```bash
+   build.bat
+   ```
+3. Скрипт автоматически:
+   - создаст виртуальное окружение и установит зависимости,
+   - скачает ffmpeg/ffprobe/yt-dlp в папку `bin`,
+   - соберёт `dist/ReelsMakerPro.exe`,
+   - создаст **установщик** `dist/ReelsMakerPro-Setup.exe`.
+
+Итог в папке `dist/`:
+- **ReelsMakerPro.exe** — портативный запускаемый файл.
+- **ReelsMakerPro-Setup.exe** — установщик для распространения; пользователю достаточно запустить его, без Python и прочих программ.
+
+#### Если ReelsMakerPro-Setup.exe не появился
+
+Установщик создаётся только при установленном **Inno Setup**. Сделайте так:
+
+1. Скачайте и установите [Inno Setup 6](https://jrsoftware.org/isinfo.php) (стандартная установка).
+2. Если EXE уже собран (`dist/ReelsMakerPro.exe` есть), запустите **`build_installer_only.bat`** — в `dist/` появится `ReelsMakerPro-Setup.exe`.
+3. Если EXE ещё нет, после установки Inno Setup снова запустите **`build.bat`** — соберутся и EXE, и установщик.
+
+#### Сборка только EXE (без установщика)
+
+Если Inno Setup не установлен или установщик не нужен:
+
+```bash
+python build_exe.py
+```
+
+Установщик не создаётся, в `dist/` будет только `ReelsMakerPro.exe`.
+
+#### Ручной запуск с установщиком
+
+```bash
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+pip install pyinstaller
+python build_exe.py --installer
+```
+
+#### Проверка на «чистой» системе
+
+1. Передайте пользователю **ReelsMakerPro-Setup.exe** из `dist/`.
+2. На машине без Python и без FFmpeg/yt-dlp запустите установщик и установите приложение.
+3. Проверьте: запуск из меню «Пуск», обработка видео, загрузка с YouTube, форматы Reels/TikTok, субтитры.
+
 ## Лицензия
 
 Этот проект распространяется под лицензией MIT. Подробности см. в файле [LICENSE](LICENSE).
 
 ## Поддержка
 
-Если у вас возникли вопросы или проблемы, создайте [Issue](https://github.com/nellimonix/ReelsMakerPro/issues) в этом репозитории.
+Если у вас возникли вопросы или проблемы, создайте [Issue](https://github.com/nellimonix/ReelsMakerPro/issues) в репозитории оригинала.
 
 ---
