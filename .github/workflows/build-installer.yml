@@ -37,6 +37,8 @@ jobs:
           pip install pyinstaller
 
       - name: Build EXE and installer
+        env:
+          PYTHONIOENCODING: utf-8
         run: python build_exe.py --installer
 
       - name: Upload ReelsMakerPro-Setup.exe

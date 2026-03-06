@@ -1,4 +1,5 @@
 import argparse
+import io
 import os
 import shutil
 import subprocess
@@ -8,6 +9,16 @@ import zipfile
 from pathlib import Path
 from typing import Optional
 from urllib.request import Request, urlopen
+
+# Консоль на Windows (в т.ч. GitHub Actions) часто в cp1252 — принудительно UTF-8 для вывода
+if sys.platform == "win32":
+    try:
+        if sys.stdout is not None and getattr(sys.stdout, "encoding", "").lower() not in ("utf-8", "utf8"):
+            sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+        if sys.stderr is not None and getattr(sys.stderr, "encoding", "").lower() not in ("utf-8", "utf8"):
+            sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
+    except (AttributeError, OSError):
+        pass
 
 if sys.platform == "win32":
     import ctypes
